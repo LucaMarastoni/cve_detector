@@ -72,7 +72,7 @@ Questo tool:
 Esempio di esecuzione manuale:
 
 ```bash
-./daily_cve_check.py
+./cve_monitor.py
 ```
 
 ### Output esempio
