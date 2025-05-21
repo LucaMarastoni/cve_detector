@@ -34,7 +34,7 @@ Questo tool:
 1. Clona questo repository:
 
    ```bash
-   git clone 
+   git clone https://github.com/LucaMarastoni/cve_detector.git
    cd cve_detector
    ```
 2. (Opzionale) Crea un virtualenv e attivalo:
