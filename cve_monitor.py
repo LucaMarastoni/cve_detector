@@ -63,7 +63,7 @@ def scan_file(json_path, techs):
         data = json.load(f)
     cna = data.get("containers",{}).get("cna",{})
     score = get_highest_cvss_score(cna.get("metrics",[]))
-    if score < 4.0:
+    if score < 9.0:
         return None
 
     texts = [cna.get("title","")]
