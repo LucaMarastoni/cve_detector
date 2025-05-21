@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import os
 import subprocess
 import json
@@ -11,7 +9,6 @@ REPO_URL = "https://github.com/CVEProject/cvelistV5.git"
 LOCAL_REPO = "cvelistV5"
 TECH_FILE = "tech_list.txt"
 
-# Codici di Nagios
 OK = 0
 WARNING = 1
 CRITICAL = 2
@@ -69,7 +66,6 @@ def scan_file(json_path, techs):
     if score < 4.0:
         return None
 
-    # unisco tutti i campi testuali
     texts = [cna.get("title","")]
     texts += [d.get("value","") for d in cna.get("descriptions",[])]
     for a in cna.get("affected",[]):
