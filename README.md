@@ -10,7 +10,7 @@ Questo tool:
 
 * Clona/aggiorna la repo [`CVEProject/cvelistV5`](https://github.com/CVEProject/cvelistV5.git)
 * Individua i file JSON aggiunti nelle ultime 24 ore (tramite `git log --diff-filter=A`)
-* Filtra solo le CVE con punteggio CVSS ≥ 7.0
+* Filtra solo le CVE con punteggio CVSS ≥ 9.0 e "affetcted"
 * Ricerca nei campi principali la presenza di tecnologie elencate in `tech_list.txt`
 * Restituisce un output in stile Nagios con codice di uscita:
 
