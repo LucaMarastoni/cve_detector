@@ -9,6 +9,7 @@ REPO_URL = "https://github.com/CVEProject/cvelistV5.git"
 LOCAL_REPO = "cvelistV5"
 TECH_FILE = "tech_list.txt"
 
+# Codici di Nagios
 OK = 0
 WARNING = 1
 CRITICAL = 2
@@ -57,12 +58,16 @@ def get_highest_cvss_score(metrics):
 
 def get_affected(cna):
     affected = []
-    for a in cna.get("affected",[]):
-        vendor = a.get("vendor","")
-        product = a.get("product","")
-        if vendor and product:
+    for a in cna.get("affected", []):
+        vendor = a.get("vendor", "").strip()
+        product = a.get("product", "").strip()
+        versions = a.get("versions", [])
+        is_affected = any(v.get("status") == "affected" for v in versions)
+
+        if vendor and product and is_affected:
             affected.append(f"{vendor} {product}")
     return affected
+
 
 def scan_file(json_path, techs):
 
