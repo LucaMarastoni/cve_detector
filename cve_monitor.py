@@ -55,15 +55,23 @@ def get_highest_cvss_score(metrics):
                 scores.append(m[key]["baseScore"])
     return max(scores) if scores else 0.0
 
+def get_affected(cna):
+    affected = []
+    for a in cna.get("affected",[]):
+        vendor = a.get("vendor","")
+        product = a.get("product","")
+        if vendor and product:
+            affected.append(f"{vendor} {product}")
+    return affected
+
 def scan_file(json_path, techs):
-    """
-    Ritorna (tech, title, score) se match e score>=7.0, altrimenti None.
-    """
+
     with open(json_path) as f:
         data = json.load(f)
     cna = data.get("containers",{}).get("cna",{})
+    affected = get_affected(cna)
     score = get_highest_cvss_score(cna.get("metrics",[]))
-    if score < 9.0:
+    if score < 9.0 or not affected:
         return None
 
     texts = [cna.get("title","")]
