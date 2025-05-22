@@ -63,9 +63,9 @@ cve_detector/             # Root folder
   Examples:
 
   ```text
-  nginx 1.1.3
-  apache 2.4.52
-  log4j
+  Jenkins 2.509
+  JFrog 7.113.4
+  GitLab 18.0
   ```
 
 ---
