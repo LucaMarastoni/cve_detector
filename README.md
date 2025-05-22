@@ -1,127 +1,167 @@
-# CVE Daily Alert Script
+# cve\_detector
 
-Uno script Python per monitorare nuove CVE critiche correlate a tecnologie di tuo interesse.
+**Script**: `cve_monitor.py`
 
----
-
-## Descrizione
-
-Questo tool:
-
-* Clona/aggiorna la repo [`CVEProject/cvelistV5`](https://github.com/CVEProject/cvelistV5.git)
-* Individua i file JSON aggiunti nelle ultime 24 ore (tramite `git log --diff-filter=A`)
-* Filtra solo le CVE con punteggio CVSS ≥ 9.0 e "affetcted"
-* Ricerca nei campi principali la presenza di tecnologie elencate in `tech_list.txt`
-* Restituisce un output in stile Nagios con codice di uscita:
-
-  * `0` OK (nessuna CVE critica)
-  * `1` WARNING (CVSS ≥ 7.0 e < 9.0)
-  * `2` CRITICAL (CVSS ≥ 9.0)
-  * `3` UNKNOWN (errori o configurazione mancante)
+**Brief Description**
+CVE Detector is a Python script that daily monitors new critical vulnerabilities (CVEs) published in the [CVEProject/cvelistV5](https://github.com/CVEProject/cvelistV5) repository. It filters alerts by technology and version of interest, and outputs results in a Nagios-compatible format.
 
 ---
 
-## Prerequisiti
+## 🚀 Features
 
-* Python 3.6+
-* Git installato e accessibile da CLI
-* Ambiente POSIX (Linux/macOS)
+* **Clone & update** the `CVEProject/cvelistV5` repository locally.
+* Detect JSON files **added** in the last 24 hours using `git log --diff-filter=A`.
+* Extract from each CVE record:
 
----
+  * The **highest CVSS score** available (V4.0 → V3.1 → V3.0 → V2.0).
+  * The list of **affected vendor/product combinations** and their version constraints.
+  * The CVE **title** and metadata.
+* Compare each CVE’s affected versions against the **technology/version pairs** defined in `tech_list.txt`:
 
-## Installazione
+  * If a version is specified, only CVEs impacting that version are reported.
+  * If no version is given, all CVEs for that technology are considered.
+* Produce a **Nagios-style** summary with exit codes:
 
-1. Clona questo repository:
-
-   ```bash
-   git clone https://github.com/LucaMarastoni/cve_detector.git
-   cd cve_detector
-   ```
-2. (Opzionale) Crea un virtualenv e attivalo:
-
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-3. Rendi eseguibile lo script:
-
-   ```bash
-   chmod +x cve_monitor.py
-   ```
+  * `0 (OK)`: no critical CVEs found
+  * `1 (WARNING)`: CVSS ≥ 7.0 and < 9.0
+  * `2 (CRITICAL)`: CVSS ≥ 9.0
+  * `3 (UNKNOWN)`: configuration error or missing files
 
 ---
 
-## Configurazione
+## 📋 Requirements
 
-1. **`tech_list.txt`**: file di testo in cartella principale, una tecnologia per riga (case-insensitive).
+* **Python** 3.6 or higher
+* **Git** CLI installed and in `$PATH`
+* Python package **`packaging`** (for version comparison)
+* UNIX-like environment (Linux or macOS)
 
-   ```text
-   nginx
-   apache
-   log4j
-   ```
-2. (Facoltativo) Modifica le soglie CVSS direttamente nel codice:
+Dependencies are listed in `requirements.txt`:
 
-   * `WARNING`: CVSS ≥ 7.0 e < 9.0
-   * `CRITICAL`: CVSS ≥ 9.0
+```text
+packaging
+```
 
 ---
 
-## Uso
+## 📂 Repository Structure
 
-Esempio di esecuzione manuale:
+```
+cve_detector/             # Root folder
+├── cve_monitor.py        # Main monitoring script
+├── tech_list.txt         # Technology and version list (one per line)
+├── requirements.txt      # Python dependencies
+└── README.md             # Documentation (this file)
+```
+
+* **`tech_list.txt`** format:
+
+  ```text
+  <technology> [version]
+  ```
+
+  Examples:
+
+  ```text
+  nginx 1.1.3
+  apache 2.4.52
+  log4j
+  ```
+
+---
+
+## 🔧 Installation
+
+Clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/LucaMarastoni/cve_detector.git
+cd cve_detector
+python3 -m pip install --user -r requirements.txt
+chmod +x cve_monitor.py
+```
+
+---
+
+## ⚙️ Configuration
+
+1. Edit **`tech_list.txt`** and list each technology on its own line. Optionally append a specific version separated by a space.
+2. (Optional) Adjust CVSS thresholds in `cve_monitor.py` if you need different sensitivity:
+
+   * Minimum CVSS to report: `score < 1.0` in code (default filters out only score < 1)
+   * `WARNING` range: `7.0 ≤ score < 9.0`
+   * `CRITICAL` range: `score ≥ 9.0`
+
+---
+
+## ▶️ Usage
+
+Run the script manually or via scheduler:
 
 ```bash
 ./cve_monitor.py
 ```
 
-### Output esempio
+### Sample Outputs
 
-* **OK** (nessuna CVE grave):
-
-  ```text
-  OK - nessuna CVE critica trovata
-  ```
-* **WARNING** (ad es. CVSS 7.2):
+* **OK** (no critical CVEs):
 
   ```text
-  WARNING - 2 CVE critiche trovate: NGINX[7.2] CVE-2025-6001.json; APACHE[7.5] CVE-2025-6010.json
+  OK - no critical CVEs found
   ```
-* **CRITICAL** (almeno CVSS ≥ 9.0):
+
+* **WARNING** (CVSS 7–8.9):
 
   ```text
-  CRITICAL - 1 CVE critiche trovate: LOG4J[9.8] CVE-2025-6020.json
+  WARNING - 2 CVEs detected:
+  - NGINX 1.1.3 | CVSS: 7.2 | HTTP/2 RCE vulnerability | File: CVE-2025-48210.json
+  - LOG4J | CVSS: 8.0 | Remote code execution | File: CVE-2025-48300.json
   ```
 
-L’ultimo campo elenca `TECNOLOGIA[score] filename`
+* **CRITICAL** (CVSS ≥ 9.0):
+
+  ```text
+  CRITICAL - 1 CVE detected:
+  - APACHE 2.4.52 | CVSS: 9.1 | Directory traversal in mod_proxy | File: CVE-2025-48222.json
+  ```
 
 ---
 
-## Pianificazione con cron
+## ⏰ Scheduling with Cron
 
-Per eseguire lo script ogni giorno alle 00:10 e salvare i log:
+To run daily at 00:10 and log output:
 
 ```cron
-10 0 * * * /usr/bin/env python3 /path/to/cve_monitor.py >> /var/log/cve_monitor.log 2>&1
+10 0 * * * /usr/bin/env python3 /path/to/cve_detector/cve_monitor.py \
+    >> /var/log/cve_monitor.log 2>&1
 ```
 
-Assicurati che il percorso sia corretto e che l’utente abbia permessi di lettura/scrittura sui log.
+Ensure the cron user has read/write permissions on the log path.
 
 ---
 
-## Codici di uscita
+## 📊 Exit Codes
 
-| Codice | Significato                                    |
-| -----: | ---------------------------------------------- |
-|      0 | OK: nessuna CVE critica                        |
-|      1 | WARNING: CVSS ≥ 7.0 e < 9.0                    |
-|      2 | CRITICAL: CVSS ≥ 9.0                           |
-|      3 | UNKNOWN: errori (es. `tech_list.txt` mancante) |
+| Code | Meaning                                      |
+| ---: | -------------------------------------------- |
+|    0 | OK: no critical CVEs found                   |
+|    1 | WARNING: CVSS ≥ 7.0 and < 9.0                |
+|    2 | CRITICAL: CVSS ≥ 9.0                         |
+|    3 | UNKNOWN: configuration error or missing file |
 
 ---
 
-## Log & Debug
+## 🛠 Troubleshooting
 
-* Verifica la repo `cvelistV5` in locale: `% ls cvelistV5`
-* Esegui manualmente `git -C cvelistV5 log --since="24 hours ago" --diff-filter=A`
-* Aggiungi flag `-v` al print per debug esteso.
+* Validate new files with:
+
+  ```bash
+  git -C cvelistV5 log --since="24 hours ago" --diff-filter=A
+  ```
+* Run `cve_monitor.py` with debug prints by editing the script.
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License. © 2025 Luca Marastoni
